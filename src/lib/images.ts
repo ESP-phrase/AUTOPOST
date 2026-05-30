@@ -1,19 +1,53 @@
 import OpenAI from 'openai';
 
+const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 const OPENAI_BASE = 'https://api.openai.com/v1';
 
-export function createOpenAIClient(proxyUrl?: string): OpenAI {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OPENAI_API_KEY not set');
+function getClient(proxyUrl?: string): { client: OpenAI; isOpenRouter: boolean } {
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
 
-  return new OpenAI({
-    apiKey,
-    baseURL: proxyUrl ? `${proxyUrl}/v1` : OPENAI_BASE,
-  });
+  if (openRouterKey) {
+    return {
+      client: new OpenAI({
+        apiKey: openRouterKey,
+        baseURL: proxyUrl ? `${proxyUrl}/v1` : OPENROUTER_BASE,
+        defaultHeaders: {
+          'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+          'X-Title': 'SaaS Launch Dashboard',
+        },
+      }),
+      isOpenRouter: true,
+    };
+  }
+  if (openaiKey) {
+    return {
+      client: new OpenAI({
+        apiKey: openaiKey,
+        baseURL: proxyUrl ? `${proxyUrl}/v1` : OPENAI_BASE,
+      }),
+      isOpenRouter: false,
+    };
+  }
+  throw new Error('OPENROUTER_API_KEY or OPENAI_API_KEY required for images');
 }
 
 export async function generateImage(prompt: string, proxyUrl?: string): Promise<string> {
-  const client = createOpenAIClient(proxyUrl);
+  const { client, isOpenRouter } = getClient(proxyUrl);
+
+  if (isOpenRouter) {
+    const response = await client.chat.completions.create({
+      model: 'google/gemini-2.5-flash-image',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1024,
+    });
+    const text = response.choices[0]?.message?.content?.trim() || '';
+    const match = text.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+    if (match) return match[1];
+    const urlMatch = text.match(/(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|webp))/i);
+    if (urlMatch) return urlMatch[0];
+    throw new Error('OpenRouter: no image URL in response');
+  }
 
   const response = await client.images.generate({
     model: 'dall-e-3',

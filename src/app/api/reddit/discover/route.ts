@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { projects } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getProxyList, getNextProxyUrl } from '@/lib/proxy';
 import { discoverSubreddits } from '@/lib/reddit';
 import { generateContent } from '@/lib/ai';
 

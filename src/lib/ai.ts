@@ -2,15 +2,20 @@ import OpenAI from 'openai';
 import type { Channel, ContentTone, ContentFormat } from '@/types';
 import { CHANNEL_CONFIG } from '@/types';
 
-const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
+const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
+const MODEL = 'deepseek/deepseek-chat';
 
-export function createDeepSeekClient(proxyUrl?: string): OpenAI {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) throw new Error('DEEPSEEK_API_KEY not set');
+export function createAIClient(proxyUrl?: string): OpenAI {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY not set');
 
   return new OpenAI({
     apiKey,
-    baseURL: proxyUrl ? `${proxyUrl}/v1` : DEEPSEEK_BASE,
+    baseURL: proxyUrl ? `${proxyUrl}/v1` : OPENROUTER_BASE,
+    defaultHeaders: {
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      'X-Title': 'SaaS Launch Dashboard',
+    },
   });
 }
 
@@ -49,14 +54,14 @@ export async function generateContent(
   tone: ContentTone,
   proxyUrl?: string
 ): Promise<string> {
-  const client = createDeepSeekClient(proxyUrl);
+  const client = createAIClient(proxyUrl);
   const template = PROMPTS[channel]?.[format];
   if (!template) throw new Error(`No prompt template for ${channel}/${format}`);
 
   const prompt = template.replace(/NAME/g, projectName).replace(/SUMMARY/g, summary).replace(/TONE/g, tone);
 
   const response = await client.chat.completions.create({
-    model: 'deepseek-chat',
+    model: MODEL,
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 2048,
     temperature: 0.8,

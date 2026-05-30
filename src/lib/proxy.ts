@@ -68,13 +68,13 @@ export async function checkProxyAlive(host: string, port: number, timeoutMs: num
   }
 }
 
-export async function testProxyForDeepSeek(host: string, port: number): Promise<boolean> {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
+export async function testProxyForAI(host: string, port: number): Promise<boolean> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return false;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
-    const response = await fetch('https://api.deepseek.com/v1/models', {
+    const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: controller.signal,
     });
