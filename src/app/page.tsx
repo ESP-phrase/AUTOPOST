@@ -10,11 +10,13 @@ import ContentGenerator from "@/components/ContentGenerator";
 import RedditDiscover from "@/components/RedditDiscover";
 import XScheduler from "@/components/XScheduler";
 import ImageGenerator from "@/components/ImageGenerator";
+import PHLaunch from "@/components/PHLaunch";
 import type { Project, Asset } from "@/types";
 
-type Tab = "projects" | "content" | "reddit" | "x" | "assets" | "images" | "proxies";
+type Tab = "launch" | "projects" | "content" | "reddit" | "x" | "assets" | "images" | "proxies";
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
+  { key: "launch", label: "Launch", icon: "L" },
   { key: "projects", label: "Projects", icon: "P" },
   { key: "content", label: "AI Content", icon: "A" },
   { key: "reddit", label: "Reddit", icon: "R" },
@@ -33,7 +35,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export default function Dashboard() {
-  const [tab, setTab] = useState<Tab>("projects");
+  const [tab, setTab] = useState<Tab>("launch");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [dbStatus, setDbStatus] = useState<"connecting" | "ready" | "error">("connecting");
@@ -107,6 +109,12 @@ export default function Dashboard() {
         <div className="p-3 bg-red-900/10 border border-red-900/30 rounded-xl text-sm text-red-400">
           Database connection failed. Check DATABASE_URL in .env.local and restart the dev server.
         </div>
+      )}
+
+      {tab === "launch" && (
+        selectedProject
+          ? <PHLaunch projectId={selectedProject.id} />
+          : <EmptyState message="Create or select a project to start your Product Hunt launch" />
       )}
 
       {tab === "projects" && (
