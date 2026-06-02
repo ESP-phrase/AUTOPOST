@@ -16,7 +16,10 @@ export default function ContentGenerator({ projectId }: { projectId: number }) {
 
   useEffect(() => {
     if (projectId) {
-      fetch("/api/content?projectId=" + projectId).then(r => r.json()).then(setContents);
+      fetch("/api/content?projectId=" + projectId)
+        .then(r => r.json())
+        .then(data => setContents(Array.isArray(data) ? data : []))
+        .catch(() => setContents([]));
     }
   }, [projectId]);
 
@@ -54,7 +57,7 @@ export default function ContentGenerator({ projectId }: { projectId: number }) {
       if (res.ok) {
         toast.success(`Generated ${data.pieces} pieces!${data.errors?.length ? ` (${data.errors.length} failed)` : ""}`);
         const fresh = await fetch("/api/content?projectId=" + projectId).then(r => r.json());
-        setContents(fresh);
+        setContents(Array.isArray(fresh) ? fresh : []);
       } else {
         toast.error(data.error);
       }

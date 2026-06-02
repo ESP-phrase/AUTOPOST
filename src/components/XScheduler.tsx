@@ -13,9 +13,13 @@ export default function XScheduler() {
   }, []);
 
   async function fetchSchedules() {
-    const res = await fetch("/api/x/schedule");
-    const data = await res.json();
-    setSchedules(data);
+    try {
+      const res = await fetch("/api/x/schedule");
+      const data = await res.json();
+      setSchedules(Array.isArray(data) ? data : []);
+    } catch {
+      setSchedules([]);
+    }
   }
 
   async function handleDelete(id: number) {

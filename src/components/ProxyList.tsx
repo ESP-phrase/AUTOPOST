@@ -12,9 +12,13 @@ export default function ProxyList() {
   }, []);
 
   async function fetchProxies() {
-    const res = await fetch("/api/proxy/list");
-    const data = await res.json();
-    setProxies(data);
+    try {
+      const res = await fetch("/api/proxy/list");
+      const data = await res.json();
+      setProxies(Array.isArray(data) ? data : []);
+    } catch {
+      setProxies([]);
+    }
   }
 
   async function handleHealthCheck() {

@@ -16,9 +16,13 @@ export default function ProjectForm({ selected, onSelect }: { selected: Project 
   }, []);
 
   async function fetchProjects() {
-    const res = await fetch("/api/projects");
-    const data = await res.json();
-    setProjects(data);
+    try {
+      const res = await fetch("/api/projects");
+      const data = await res.json();
+      setProjects(Array.isArray(data) ? data : []);
+    } catch {
+      setProjects([]);
+    }
   }
 
   function resetForm() {
